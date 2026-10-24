@@ -12,6 +12,7 @@ public class PlayerPhysics : MonoBehaviour
 
     public float Gravity => gravity;
     public float VerticalVelocity => verticalVelocity;
+
     public bool IsGrounded =>
         controller != null && controller.isGrounded;
 
@@ -20,21 +21,22 @@ public class PlayerPhysics : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
-    // Mengubah data kecepatan vertikal fisika.
+    // Mengatur kecepatan vertikal dari sistem fisika
+    // atau PlayerJump.
     public void SetVerticalVelocity(float velocity)
     {
         verticalVelocity = velocity;
     }
 
-    private void Update()
+    // Memperbarui gravitasi tanpa menggerakkan karakter.
+    public void ApplyGravity(float deltaTime)
     {
+        if (controller == null)
+            return;
+
         if (controller.isGrounded && verticalVelocity < 0f)
             verticalVelocity = -2f;
 
-        verticalVelocity += gravity * Time.deltaTime;
-
-        controller.Move(
-            Vector3.up * verticalVelocity * Time.deltaTime
-        );
+        verticalVelocity += gravity * deltaTime;
     }
 }
