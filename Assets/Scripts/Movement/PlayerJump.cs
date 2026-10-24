@@ -8,9 +8,14 @@ public class PlayerJump : MonoBehaviour
     [SerializeField, Min(0f)]
     private float jumpHeight = 1.5f;
 
+    [SerializeField, Min(0f)]
+    private float jumpBufferTime = 0.15f;
+
     [Header("References")]
     [SerializeField] private PCInput pcInput;
     [SerializeField] private PlayerPhysics playerPhysics;
+
+    private float jumpBufferCounter;
 
     private void Awake()
     {
@@ -23,23 +28,13 @@ public class PlayerJump : MonoBehaviour
 
     private void Update()
     {
-        if (pcInput != null &&
-            pcInput.ConsumeJumpInput())
-        {
+        if (pcInput != null && pcInput.ConsumeJumpInput())
             Jump();
-        }
-    }
 
-    public void Jump()
-    {
-        if (playerPhysics == null)
-        {
-            Debug.LogError(
-                "PlayerPhysics belum terpasang pada Player.",
-                this
-            );
+        if (jumpBufferCounter <= 0f)
             return;
-        }
+
+        jumpBufferCounter -= Time.deltaTime;
 
         if (!playerPhysics.IsGrounded)
             return;
@@ -49,5 +44,18 @@ public class PlayerJump : MonoBehaviour
         );
 
         playerPhysics.SetVerticalVelocity(jumpVelocity);
+        jumpBufferCounter = 0f;
+    }
+
+    // Dipanggil keyboard maupun UI Button.
+    public void Jump()
+    {
+        if (playerPhysics == null)
+        {
+            Debug.LogError("PlayerPhysics tidak ditemukan.", this);
+            return;
+        }
+
+        jumpBufferCounter = jumpBufferTime;
     }
 }
