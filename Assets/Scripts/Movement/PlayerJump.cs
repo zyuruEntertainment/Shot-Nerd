@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerPhysics))]
 public class PlayerJump : MonoBehaviour
@@ -10,11 +12,18 @@ public class PlayerJump : MonoBehaviour
         playerPhysics = GetComponent<PlayerPhysics>();
     }
 
+    private void Update()
+    {
+        if (Keyboard.current != null &&
+            Keyboard.current.spaceKey.wasPressedThisFrame)
+        {
+            Jump();
+        }
+    }
+
+    // Dipanggil oleh keyboard maupun UI Button.
     public void Jump()
     {
-        if (playerPhysics == null)
-            return;
-
-        playerPhysics.Jump();
+        playerPhysics.RequestJump();
     }
 }

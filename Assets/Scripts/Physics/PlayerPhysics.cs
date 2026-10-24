@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.InputSystem;
+﻿
+using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerPhysics : MonoBehaviour
@@ -7,12 +7,13 @@ public class PlayerPhysics : MonoBehaviour
     [Header("Gravity")]
     [SerializeField] private float gravity = -20f;
 
-    [Header("Jump")]
+    [Header("Jump Physics")]
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private bool allowJump = true;
 
     private CharacterController controller;
     private float verticalVelocity;
+    private bool jumpRequested;
 
     public float VerticalVelocity => verticalVelocity;
 
@@ -21,20 +22,31 @@ public class PlayerPhysics : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
+    // Dipanggil oleh PlayerJump, bukan menghitung fisika di sana.
+    public void RequestJump()
+    {
+        if (allowJump)
+            jumpRequested = true;
+    }
+
     private void Update()
     {
-        if (controller.isGrounded && verticalVelocity < 0f)
-        {
-            verticalVelocity = -2f;
-        }
+        bool grounded = controller.isGrounded;
 
-        if (allowJump &&
-            controller.isGrounded &&
-            Keyboard.current != null &&
-            Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (grounded && verticalVelocity < 0f)
+            verticalVelocity = -2f;
+
+        if (jumpRequested)
         {
-            verticalVelocity =
-                Mathf.Sqrt(jumpHeight * -2f * gravity);
+            if (allowJump && grounded)
+            {
+                verticalVelocity = Mathf.Sqrt(
+                    jumpHeight * -2f * gravity
+                );
+            }
+
+            // Permintaan diproses sekali.
+            jumpRequested = false;
         }
 
         verticalVelocity += gravity * Time.deltaTime;
@@ -42,14 +54,5 @@ public class PlayerPhysics : MonoBehaviour
         controller.Move(
             Vector3.up * verticalVelocity * Time.deltaTime
         );
-    }
-
-    public void Jump()
-    {
-        if (!allowJump || !controller.isGrounded)
-            return;
-
-        verticalVelocity =
-            Mathf.Sqrt(jumpHeight * -2f * gravity);
     }
 }
