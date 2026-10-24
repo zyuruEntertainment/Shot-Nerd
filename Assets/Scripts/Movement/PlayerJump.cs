@@ -1,8 +1,13 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 
 [RequireComponent(typeof(PlayerPhysics))]
 public class PlayerJump : MonoBehaviour
 {
+    [Header("Jump")]
+    [SerializeField, Min(0f)]
+    private float jumpHeight = 1.5f;
+
     [Header("References")]
     [SerializeField] private PCInput pcInput;
     [SerializeField] private PlayerPhysics playerPhysics;
@@ -36,6 +41,13 @@ public class PlayerJump : MonoBehaviour
             return;
         }
 
-        playerPhysics.RequestJump();
+        if (!playerPhysics.IsGrounded)
+            return;
+
+        float jumpVelocity = Mathf.Sqrt(
+            jumpHeight * -2f * playerPhysics.Gravity
+        );
+
+        playerPhysics.SetVerticalVelocity(jumpVelocity);
     }
 }

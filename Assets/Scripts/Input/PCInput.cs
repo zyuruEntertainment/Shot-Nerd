@@ -1,57 +1,60 @@
-﻿using UnityEngine;
+﻿
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PCInput : MonoBehaviour
 {
     public Vector2 MoveInput { get; private set; }
-    private bool jumpRequested;
 
     private Vector2 lookInput;
-
+    private bool jumpRequested;
 
     private void Update()
     {
-        Vector2 input = Vector2.zero;
+        Keyboard keyboard = Keyboard.current;
+        Mouse mouse = Mouse.current;
 
-        if (Keyboard.current == null ||
-            Mouse.current == null)
+        if (keyboard == null)
         {
             MoveInput = Vector2.zero;
             return;
         }
 
-        if (Keyboard.current.wKey.isPressed)
+        Vector2 input = Vector2.zero;
+
+        if (keyboard.wKey.isPressed)
             input.y += 1f;
 
-        if (Keyboard.current.sKey.isPressed)
+        if (keyboard.sKey.isPressed)
             input.y -= 1f;
 
-        if (Keyboard.current.dKey.isPressed)
+        if (keyboard.dKey.isPressed)
             input.x += 1f;
 
-        if (Keyboard.current.aKey.isPressed)
+        if (keyboard.aKey.isPressed)
             input.x -= 1f;
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (keyboard.spaceKey.wasPressedThisFrame)
             jumpRequested = true;
 
         MoveInput = Vector2.ClampMagnitude(input, 1f);
 
-        if (Cursor.lockState == CursorLockMode.Locked)
+        if (mouse != null)
         {
-            lookInput += Mouse.current.delta.ReadValue();
+            if (Cursor.lockState == CursorLockMode.Locked)
+                lookInput += mouse.delta.ReadValue();
+
+            if (mouse.leftButton.wasPressedThisFrame)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
         }
 
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (keyboard.escapeKey.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
-        }
-
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
         }
     }
 
