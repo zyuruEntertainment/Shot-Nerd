@@ -32,18 +32,21 @@ public class PlayerMovement : MonoBehaviour
         Vector2 moveInput = Vector2.zero;
         Vector2 lookInput = Vector2.zero;
 
-        if (Application.isMobilePlatform)
+        // Always read mobile input, including in the Unity Editor.
+        if (mobileInput != null)
         {
-            if (mobileInput != null)
-            {
-                moveInput = mobileInput.MoveInput;
-                lookInput = mobileInput.ConsumeLookInput();
-            }
+            moveInput = mobileInput.MoveInput;
+            lookInput = mobileInput.ConsumeLookInput();
         }
-        else if (pcInput != null)
+
+        // Use keyboard/mouse when mobile input is not active.
+        if (pcInput != null)
         {
-            moveInput = pcInput.MoveInput;
-            lookInput = pcInput.ConsumeLookInput();
+            if (moveInput.sqrMagnitude < 0.0001f)
+                moveInput = pcInput.MoveInput;
+
+            if (lookInput.sqrMagnitude < 0.0001f)
+                lookInput = pcInput.ConsumeLookInput();
         }
 
         RotatePlayer(lookInput);
@@ -73,10 +76,12 @@ public class PlayerMovement : MonoBehaviour
                 ? SensitivitySettings.Instance.LookSensitivity
                 : 1f;
 
+        // Horizontal look rotates the player.
         transform.Rotate(
             Vector3.up * lookInput.x * sensitivity
         );
 
+        // Vertical look rotates the camera.
         cameraPitch -= lookInput.y * sensitivity;
         cameraPitch = Mathf.Clamp(cameraPitch, -85f, 85f);
 
