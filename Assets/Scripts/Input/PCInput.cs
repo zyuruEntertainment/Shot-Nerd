@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 public class PCInput : MonoBehaviour
 {
     public Vector2 MoveInput { get; private set; }
+    private bool jumpRequested;
 
     private Vector2 lookInput;
 
@@ -31,6 +32,9 @@ public class PCInput : MonoBehaviour
         if (Keyboard.current.aKey.isPressed)
             input.x -= 1f;
 
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+            jumpRequested = true;
+
         MoveInput = Vector2.ClampMagnitude(input, 1f);
 
         if (Cursor.lockState == CursorLockMode.Locked)
@@ -56,5 +60,14 @@ public class PCInput : MonoBehaviour
         Vector2 result = lookInput;
         lookInput = Vector2.zero;
         return result;
+    }
+
+    public bool ConsumeJumpInput()
+    {
+        if (!jumpRequested)
+            return false;
+
+        jumpRequested = false;
+        return true;
     }
 }

@@ -1,29 +1,41 @@
-﻿
-using UnityEngine;
-using UnityEngine.InputSystem;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(PlayerPhysics))]
 public class PlayerJump : MonoBehaviour
 {
-    private PlayerPhysics playerPhysics;
+    [Header("References")]
+    [SerializeField] private PCInput pcInput;
+    [SerializeField] private PlayerPhysics playerPhysics;
 
     private void Awake()
     {
-        playerPhysics = GetComponent<PlayerPhysics>();
+        if (pcInput == null)
+            pcInput = GetComponent<PCInput>();
+
+        if (playerPhysics == null)
+            playerPhysics = GetComponent<PlayerPhysics>();
     }
 
     private void Update()
     {
-        if (Keyboard.current != null &&
-            Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (pcInput != null &&
+            pcInput.ConsumeJumpInput())
         {
             Jump();
         }
     }
 
-    // Dipanggil oleh keyboard maupun UI Button.
     public void Jump()
     {
+        if (playerPhysics == null)
+        {
+            Debug.LogError(
+                "PlayerPhysics belum terpasang pada Player.",
+                this
+            );
+            return;
+        }
+
         playerPhysics.RequestJump();
     }
 }
