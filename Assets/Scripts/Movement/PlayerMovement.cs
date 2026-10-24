@@ -1,17 +1,17 @@
+
 using UnityEngine;
-using UnityEngine.Windows;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField, Min(0f)]
+    private float moveSpeed = 5f;
 
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private PCInput pcInput;
     [SerializeField] private MobileInput mobileInput;
-    [SerializeField] private PlayerPhysics playerPhysics;
 
     private CharacterController controller;
     private float cameraPitch;
@@ -22,29 +22,28 @@ public class PlayerMovement : MonoBehaviour
 
         if (cameraTransform == null && Camera.main != null)
             cameraTransform = Camera.main.transform;
+
+        if (pcInput == null)
+            pcInput = GetComponent<PCInput>();
     }
 
     private void Update()
     {
-        Vector2 moveInput;
-        Vector2 lookInput;
+        Vector2 moveInput = Vector2.zero;
+        Vector2 lookInput = Vector2.zero;
 
-        bool useMobile = Application.isMobilePlatform;
-
-        if (useMobile && mobileInput != null)
+        if (Application.isMobilePlatform)
         {
-            moveInput = mobileInput.MoveInput;
-            lookInput = mobileInput.ConsumeLookInput();
+            if (mobileInput != null)
+            {
+                moveInput = mobileInput.MoveInput;
+                lookInput = mobileInput.ConsumeLookInput();
+            }
         }
         else if (pcInput != null)
         {
             moveInput = pcInput.MoveInput;
             lookInput = pcInput.ConsumeLookInput();
-        }
-        else
-        {
-            moveInput = Vector2.zero;
-            lookInput = Vector2.zero;
         }
 
         RotatePlayer(lookInput);
@@ -55,12 +54,12 @@ public class PlayerMovement : MonoBehaviour
     {
         input = Vector2.ClampMagnitude(input, 1f);
 
-        Vector3 moveDirection =
+        Vector3 direction =
             transform.right * input.x +
             transform.forward * input.y;
 
         controller.Move(
-            moveDirection * moveSpeed * Time.deltaTime
+            direction * moveSpeed * Time.deltaTime
         );
     }
 
@@ -71,15 +70,14 @@ public class PlayerMovement : MonoBehaviour
 
         float sensitivity =
             SensitivitySettings.Instance != null
-            ? SensitivitySettings.Instance.LookSensitivity
-            : 1f;
+                ? SensitivitySettings.Instance.LookSensitivity
+                : 1f;
 
-        float mouseX = lookInput.x * sensitivity;
-        float mouseY = lookInput.y * sensitivity;
+        transform.Rotate(
+            Vector3.up * lookInput.x * sensitivity
+        );
 
-        transform.Rotate(Vector3.up * mouseX);
-
-        cameraPitch -= mouseY;
+        cameraPitch -= lookInput.y * sensitivity;
         cameraPitch = Mathf.Clamp(cameraPitch, -85f, 85f);
 
         cameraTransform.localRotation =
