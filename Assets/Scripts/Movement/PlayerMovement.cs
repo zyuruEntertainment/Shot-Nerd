@@ -9,6 +9,19 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Min(0f)]
     private float moveSpeed = 5f;
 
+    [Header("Acceleration")]
+    [SerializeField, Min(0f)]
+    private float groundAcceleration = 25f;
+
+    [SerializeField, Min(0f)]
+    private float groundDeceleration = 30f;
+
+    [SerializeField, Min(0f)]
+    private float airAcceleration = 8f;
+
+    [SerializeField, Min(0f)]
+    private float airDeceleration = 0.5f;
+
     [Header("References")]
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private PCInput pcInput;
@@ -62,18 +75,41 @@ public class PlayerMovement : MonoBehaviour
             transform.right * input.x +
             transform.forward * input.y;
 
-        Vector3 velocity = direction * moveSpeed;
+        Vector3 targetVelocity = direction * moveSpeed;
         float deltaTime = Time.deltaTime;
+        bool grounded = playerPhysics.IsGrounded;
 
-        // Perbarui gravitasi dan ambil kecepatan vertikal.
-        if (playerPhysics != null)
+        Vector3 horizontalVelocity =
+            playerPhysics.HorizontalVelocity;
+
+        if (input.sqrMagnitude > 0.0001f)
         {
-            playerPhysics.ApplyGravity(deltaTime);
-            velocity.y = playerPhysics.VerticalVelocity;
+            float acceleration =
+                grounded ? groundAcceleration : airAcceleration;
+
+            horizontalVelocity = Vector3.MoveTowards(
+                horizontalVelocity,
+                targetVelocity,
+                acceleration * deltaTime
+            );
+        }
+        else
+        {
+            float deceleration =
+                grounded ? groundDeceleration : airDeceleration;
+
+            horizontalVelocity = Vector3.MoveTowards(
+                horizontalVelocity,
+                Vector3.zero,
+                deceleration * deltaTime
+            );
         }
 
-        // Semua gerakan karakter dilakukan dari satu tempat.
-        controller.Move(velocity * deltaTime);
+        playerPhysics.SetHorizontalVelocity(horizontalVelocity);
+        playerPhysics.ApplyGravity(deltaTime);
+
+        // Satu-satunya tempat yang menggerakkan CharacterController.
+        controller.Move(playerPhysics.Velocity * deltaTime);
     }
 
     private void RotatePlayer(Vector2 lookInput)

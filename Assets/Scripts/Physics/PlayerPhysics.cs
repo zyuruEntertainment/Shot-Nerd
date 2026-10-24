@@ -8,10 +8,14 @@ public class PlayerPhysics : MonoBehaviour
     [SerializeField] private float gravity = -20f;
 
     private CharacterController controller;
-    private float verticalVelocity;
+    private Vector3 velocity;
 
     public float Gravity => gravity;
-    public float VerticalVelocity => verticalVelocity;
+    public Vector3 Velocity => velocity;
+    public float VerticalVelocity => velocity.y;
+
+    public Vector3 HorizontalVelocity =>
+        new Vector3(velocity.x, 0f, velocity.z);
 
     public bool IsGrounded =>
         controller != null && controller.isGrounded;
@@ -21,22 +25,28 @@ public class PlayerPhysics : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
-    // Mengatur kecepatan vertikal dari sistem fisika
-    // atau PlayerJump.
-    public void SetVerticalVelocity(float velocity)
+    // PlayerJump mengatur kecepatan vertikal.
+    public void SetVerticalVelocity(float verticalVelocity)
     {
-        verticalVelocity = velocity;
+        velocity.y = verticalVelocity;
     }
 
-    // Memperbarui gravitasi tanpa menggerakkan karakter.
+    // PlayerMovement mengatur momentum horizontal.
+    public void SetHorizontalVelocity(Vector3 horizontalVelocity)
+    {
+        velocity.x = horizontalVelocity.x;
+        velocity.z = horizontalVelocity.z;
+    }
+
+    // Memperbarui gravitasi tanpa memindahkan karakter.
     public void ApplyGravity(float deltaTime)
     {
         if (controller == null)
             return;
 
-        if (controller.isGrounded && verticalVelocity < 0f)
-            verticalVelocity = -2f;
+        if (controller.isGrounded && velocity.y < 0f)
+            velocity.y = -2f;
 
-        verticalVelocity += gravity * deltaTime;
+        velocity.y += gravity * deltaTime;
     }
 }
